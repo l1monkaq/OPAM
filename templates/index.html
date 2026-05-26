@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор Шиномонтажу</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0">
+                    
+                    <div class="card-header bg-primary text-white text-center py-4">
+                        <h2 class="mb-1">🛞 Калькулятор послуг шиномонтажу</h2>
+                        <p class="mb-0 opacity-75">Професійне обслуговування ваших коліс</p>
+                    </div>
+
+                    <div class="bg-white border-bottom p-4">
+                        <div class="row g-3 text-center text-sm-start">
+                            <div class="col-sm-6 border-sm-end">
+                                <h6 class="text-muted text-uppercase fw-bold mb-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">📍 Наша адреса</h6>
+                                <p class="fs-5 fw-semibold text-dark mb-0">вул. Клумба, с. Білогородка</p>
+                                <small class="text-muted">Київська область, 08140</small>
+                            </div>
+                            <div class="col-sm-6 ps-sm-4">
+                                <h6 class="text-muted text-uppercase fw-bold mb-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">📞 Зв'язок з майстром</h6>
+                                <p class="fs-5 fw-semibold mb-0">
+                                    <a href="tel:+380971234567" class="text-decoration-none text-primary">+38 (095) 122-27-39</a>
+                                </p>
+                                <small class="text-muted">Графік: Пн-Сб з 9:00 до 19:00</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4 bg-white">
+                        <form id="calcForm">
+                            
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-secondary">Тип автомобіля:</label>
+                                <div class="d-flex gap-3">
+                                    <input type="radio" class="btn-check" name="car_type" id="passenger" value="passenger" checked>
+                                    <label class="btn btn-outline-primary px-4 py-2 fw-medium" for="passenger">🚗 Легковий</label>
+
+                                    <input type="radio" class="btn-check" name="car_type" id="suv" value="suv">
+                                    <label class="btn btn-outline-primary px-4 py-2 fw-medium" for="suv">🚙 Кросовер / Позашляховик</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="radius" class="form-label fw-bold text-secondary">Радіус коліс (R):</label>
+                                <select class="form-select form-select-lg fw-semibold text-dark" id="radius">
+                                    <option value="13">R13</option>
+                                    <option value="14">R14</option>
+                                    <option value="15" selected>R15</option>
+                                    <option value="16">R16</option>
+                                    <option value="17">R17</option>
+                                    <option value="18">R18</option>
+                                    <option value="19">R19</option>
+                                    <option value="20">R20</option>
+                                    <option value="21">R21</option>
+                                    <option value="22">R22</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="quantity" class="form-label fw-bold text-secondary">Кількість коліс для обслуговування:</label>
+                                <div style="max-width: 150px;">
+                                    <input type="number" class="form-control form-control-lg text-center fw-bold" id="quantity" value="4" min="1" max="4">
+                                </div>
+                            </div>
+
+                            <hr class="my-4 opacity-25">
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-secondary">Виберіть необхідні послуги:</label>
+                                <div class="list-group shadow-sm" id="servicesList">
+                                    {% for service in services %}
+                                    <label class="list-group-item d-flex align-items-center gap-3 py-3" style="cursor: pointer;">
+                                        <input class="form-check-input flex-shrink-0 service-checkbox" 
+                                               type="checkbox" 
+                                               value="{{ service.service_id }}" 
+                                               style="width: 1.3rem; height: 1.3rem; margin-top: 0;">
+                                        <span class="fs-5 text-dark fw-medium">{{ service.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                    
+                    <div class="card-footer bg-dark text-white p-4 text-center border-0 rounded-bottom">
+                        <h4 class="mb-2 text-uppercase text-muted tracking-wider" style="font-size: 0.85rem; letter-spacing: 1px;">Загальна вартість послуг</h4>
+                        <span class="display-4 fw-bold text-success" id="totalResult">0</span> <span class="display-6 text-success">грн</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('calcForm');
+        const totalResult = document.getElementById('totalResult');
+
+        async function calculatePrice() {
+            const carType = document.querySelector('input[name="car_type"]:checked').value;
+            const radius = document.getElementById('radius').value;
+            const quantity = document.getElementById('quantity').value;
+            
+            const checkboxes = document.querySelectorAll('.service-checkbox:checked');
+            const services = Array.from(checkboxes).map(cb => cb.value);
+
+            const response = await fetch('/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    car_type: carType,
+                    radius: radius,
+                    quantity: quantity,
+                    services: services
+                })
+            });
+
+            const data = await response.json();
+            totalResult.innerText = data.total;
+        }
+
+        form.addEventListener('change', calculatePrice);
+        document.getElementById('quantity').addEventListener('input', calculatePrice);
+    </script>
+</body>
+</html>
