@@ -39,3 +39,6 @@
    ```bash
    git clone <посилання_на_твій_репозиторій>
    cd tyre-service
+   
+## Також сайт доступний по цьому посиланню:
+https://opam.vercel.app/
