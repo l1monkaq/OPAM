@@ -41,4 +41,4 @@
    cd tyre-service
    
 ## Також сайт доступний по цьому посиланню:
-https://opam.vercel.app/
+https://shinkaa.vercel.app/
